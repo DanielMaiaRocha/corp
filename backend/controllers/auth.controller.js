@@ -32,7 +32,7 @@ const setCookies = (res, acessToken, refreshToken) => {
   });
   res.cookie("refreshToken", refreshToken, {
     httpOnly: true, // prevencao contra XSS
-    secure: process.env.NODE_env === "production",
+    secure: process.env.NODE_ENV === "production",
     sameSite: "strict", // prevencao contra CSRF
     maxAge: 7 * 24 * 60 * 60 * 1000, // 15 min
   });

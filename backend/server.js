@@ -13,7 +13,7 @@ dotenv.config();
 
 import { connectDB } from "./lib/db.js";
 const app = express()
-const PORT = process.env.PORT || 8000;
+const PORT = process.env.PORT || 5500;
 
 app.use(express.json())
 app.use(cookieParser())
@@ -25,7 +25,7 @@ app.use("/api/coupons", couponRoutes)
 app.use("/api/payment", paymentRoutes)
 app.use("/api/analytics", analyticsRoutes)
 
-app.listen(8000, () => {
+app.listen(PORT, () => {
     console.log("Server is running on port on http://localhost:" + PORT)
 
     connectDB();

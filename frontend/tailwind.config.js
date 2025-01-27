@@ -2,10 +2,9 @@
 export default {
   content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
   theme: {
-    extend: {
-      fontFamily: {
-        leagueGothic: ['"League Gothic"', "sans-serif"], // Nome da fonte e fallback
-      },
+    fontFamily: {
+      display: ['League Gothic', 'sans-serif'],
+      body: ['Arial', 'sans-serif'],
     },
   },
   plugins: [],
