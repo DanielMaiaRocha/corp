@@ -2,81 +2,101 @@ import { create } from "zustand";
 import toast from "react-hot-toast";
 import axios from "../lib/axios";
 
+// Função utilitária para lidar com requisições e atualizar o estado
+const handleRequest = async (requestFn, set, successCallback, errorMessage) => {
+	set({ loading: true });
+	try {
+		const response = await requestFn();
+		successCallback(response.data);
+		set({ loading: false });
+	} catch (error) {
+		set({ loading: false });
+		toast.error(error.response?.data?.error || errorMessage);
+	}
+};
+
 export const useProductStore = create((set) => ({
 	products: [],
 	loading: false,
+	error: null,
 
+	// Define os produtos diretamente no estado
 	setProducts: (products) => set({ products }),
+
+	// Cria um novo produto
 	createProduct: async (productData) => {
-		set({ loading: true });
-		try {
-			const res = await axios.post("/products", productData);
-			set((prevState) => ({
-				products: [...prevState.products, res.data],
-				loading: false,
-			}));
-		} catch (error) {
-			toast.error(error.response.data.error);
-			set({ loading: false });
-		}
+		await handleRequest(
+			() => axios.post("/products", productData),
+			set,
+			(newProduct) => {
+				set((prevState) => ({
+					products: [...prevState.products, newProduct],
+				}));
+				toast.success("Product created successfully!");
+			},
+			"Failed to create product"
+		);
 	},
+
+	// Busca todos os produtos
 	fetchAllProducts: async () => {
-		set({ loading: true });
-		try {
-			const response = await axios.get("/products");
-			set({ products: response.data.products, loading: false });
-		} catch (error) {
-			set({ error: "Failed to fetch products", loading: false });
-			toast.error(error.response.data.error || "Failed to fetch products");
-		}
+		await handleRequest(
+			() => axios.get("/products"),
+			set,
+			(data) => set({ products: data.products }),
+			"Failed to fetch products"
+		);
 	},
+
+	// Busca produtos por categoria
 	fetchProductsByCategory: async (category) => {
-		set({ loading: true });
-		try {
-			const response = await axios.get(`/products/category/${category}`);
-			set({ products: response.data.products, loading: false });
-		} catch (error) {
-			set({ error: "Failed to fetch products", loading: false });
-			toast.error(error.response.data.error || "Failed to fetch products");
-		}
+		await handleRequest(
+			() => axios.get(`/products/category/${category}`),
+			set,
+			(data) => set({ products: data.products }),
+			"Failed to fetch products by category"
+		);
 	},
+
+	// Deleta um produto
 	deleteProduct: async (productId) => {
-		set({ loading: true });
-		try {
-			await axios.delete(`/products/${productId}`);
-			set((prevProducts) => ({
-				products: prevProducts.products.filter((product) => product._id !== productId),
-				loading: false,
-			}));
-		} catch (error) {
-			set({ loading: false });
-			toast.error(error.response.data.error || "Failed to delete product");
-		}
+		await handleRequest(
+			() => axios.delete(`/products/${productId}`),
+			set,
+			() => {
+				set((prevState) => ({
+					products: prevState.products.filter((product) => product._id !== productId),
+				}));
+				toast.success("Product deleted successfully!");
+			},
+			"Failed to delete product"
+		);
 	},
+
+	// Alterna o status de "destaque" de um produto
 	toggleFeaturedProduct: async (productId) => {
-		set({ loading: true });
-		try {
-			const response = await axios.patch(`/products/${productId}`);
-			// this will update the isFeatured prop of the product
-			set((prevProducts) => ({
-				products: prevProducts.products.map((product) =>
-					product._id === productId ? { ...product, isFeatured: response.data.isFeatured } : product
-				),
-				loading: false,
-			}));
-		} catch (error) {
-			set({ loading: false });
-			toast.error(error.response.data.error || "Failed to update product");
-		}
+		await handleRequest(
+			() => axios.patch(`/products/${productId}`),
+			set,
+			(updatedProduct) => {
+				set((prevState) => ({
+					products: prevState.products.map((product) =>
+						product._id === productId ? { ...product, isFeatured: updatedProduct.isFeatured } : product
+					),
+				}));
+				toast.success("Product updated successfully!");
+			},
+			"Failed to update product"
+		);
 	},
+
+	// Busca produtos em destaque
 	fetchFeaturedProducts: async () => {
-		set({ loading: true });
-		try {
-			const response = await axios.get("/products/featured");
-			set({ products: response.data, loading: false });
-		} catch (error) {
-			set({ error: "Failed to fetch products", loading: false });
-			console.log("Error fetching featured products:", error);
-		}
+		await handleRequest(
+			() => axios.get("/products/featured"),
+			set,
+			(data) => set({ products: data }),
+			"Failed to fetch featured products"
+		);
 	},
 }));

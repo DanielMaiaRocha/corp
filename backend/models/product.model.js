@@ -1,11 +1,11 @@
 import mongoose from "mongoose";
 
 const productSchema = new mongoose.Schema({
-    name:{
+    name: {
         type: String,
         required: true
     },
-    description:{
+    description: {
         type: String,
         required: true,
     },
@@ -14,20 +14,25 @@ const productSchema = new mongoose.Schema({
         min: 0,
         required: true,
     },
-    image:{
-        type: String,
-        required: [true, 'Image is required']
+    image: { 
+        type: [String],
+        required: [true, 'At least one image is required']
     },
-    category:{
+    category: {
         type: String,
         required: true
     },
-    isFeatured:{
+    isFeatured: {
         type: Boolean,
         default: false
+    },
+    size: { 
+        type: [String],
+        enum: ["PP", "P", "M", "G", "GG"], 
+        required: [true, 'At least one size is required']
     }
-}, {timestamps: true})
+}, { timestamps: true });
 
-const Product = mongoose.model("Product", productSchema)
+const Product = mongoose.model("Product", productSchema);
 
-export default Product
+export default Product;

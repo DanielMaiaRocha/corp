@@ -1,49 +1,120 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useProductStore } from "../../stores/useProductStore";
-import { useParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import ProductCard from "../components/ProductCard";
 
 const CategoryPage = () => {
-	const { fetchProductsByCategory, products } = useProductStore();
-
-	const { category } = useParams();
+	const { fetchAllProducts, products } = useProductStore();
+	const [selectedCategory, setSelectedCategory] = useState("Todos");
+	const [currentPage, setCurrentPage] = useState(1);
+	const productsPerPage = 12; // Ajustado para combinar com o layout da imagem
 
 	useEffect(() => {
-		fetchProductsByCategory(category);
-	}, [fetchProductsByCategory, category]);
+		fetchAllProducts();
+	}, [fetchAllProducts]);
 
-	console.log("products:", products);
+	const filteredProducts = selectedCategory === "Todos"
+		? products
+		: products.filter((product) => product.category === selectedCategory);
+
+	const indexOfLastProduct = currentPage * productsPerPage;
+	const indexOfFirstProduct = indexOfLastProduct - productsPerPage;
+	const currentProducts = filteredProducts.slice(indexOfFirstProduct, indexOfLastProduct);
+
+	const paginate = (pageNumber) => setCurrentPage(pageNumber);
+	const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
+
 	return (
-		<div className='min-h-screen'>
-			<div className='relative z-10 max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8 py-16'>
-				<motion.h1
-					className='text-center text-4xl sm:text-5xl font-bold text-emerald-400 mb-8'
-					initial={{ opacity: 0, y: -20 }}
-					animate={{ opacity: 1, y: 0 }}
-					transition={{ duration: 0.8 }}
-				>
-					{category.charAt(0).toUpperCase() + category.slice(1)}
-				</motion.h1>
+		<div className="min-h-screen flex flex-col items-center mt-8">
+			{/* Botões de Navegação e Filtro */}
+			<div className="flex justify-between items-center w-full max-w-5xl px-4 mb-4">
+				<div>
+					<label htmlFor="category" className="mr-2 font-semibold text-gray-700">
+						Categorias:
+					</label>
+					<select
+						id="category"
+						className="px-2 py-1 border rounded"
+						onChange={(e) => {
+							setSelectedCategory(e.target.value);
+							setCurrentPage(1);
+						}}
+					>
+						{["Todos", "Blusas", "Regatas", "Calças", "Bones", "Jaquetas", "Casacos"].map((category) => (
+							<option key={category} value={category}>
+								{category}
+							</option>
+						))}
+					</select>
+				</div>
+				<div>
+					<button
+						disabled={currentPage === 1}
+						className={`px-4 py-2 rounded ${
+							currentPage === 1
+								? "bg-gray-300 text-gray-500 cursor-not-allowed"
+								: "bg-red-500 text-white hover:bg-red-600"
+						}`}
+						onClick={() => paginate(currentPage - 1)}
+					>
+						&lt;
+					</button>
+					<span className="mx-2 font-semibold">{`Página ${currentPage} de ${totalPages}`}</span>
+					<button
+						disabled={currentPage === totalPages}
+						className={`px-4 py-2 rounded ${
+							currentPage === totalPages
+								? "bg-gray-300 text-gray-500 cursor-not-allowed"
+								: "bg-red-500 text-white hover:bg-red-600"
+						}`}
+						onClick={() => paginate(currentPage + 1)}
+					>
+						&gt;
+					</button>
+				</div>
+			</div>
 
-				<motion.div
-					className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 justify-items-center'
-					initial={{ opacity: 0, y: 20 }}
-					animate={{ opacity: 1, y: 0 }}
-					transition={{ duration: 0.8, delay: 0.2 }}
-				>
-					{products?.length === 0 && (
-						<h2 className='text-3xl font-semibold text-gray-300 text-center col-span-full'>
-							No products found
-						</h2>
-					)}
-
-					{products?.map((product) => (
+			{/* Grid de Produtos */}
+			<div className="grid grid-cols-3 gap-4 w-full max-w-5xl">
+				{currentProducts.length === 0 ? (
+					<h2 className="text-2xl font-semibold text-gray-500 text-center col-span-3">
+						Nenhum produto encontrado
+					</h2>
+				) : (
+					currentProducts.map((product) => (
 						<ProductCard key={product._id} product={product} />
-					))}
-				</motion.div>
+					))
+				)}
+			</div>
+
+			{/* Botões de Navegação Inferiores */}
+			<div className="flex justify-between items-center w-full max-w-5xl px-4 mt-4">
+				<button
+					disabled={currentPage === 1}
+					className={`px-4 py-2 rounded ${
+						currentPage === 1
+							? "bg-gray-300 text-gray-500 cursor-not-allowed"
+							: "bg-red-500 text-white hover:bg-red-600"
+					}`}
+					onClick={() => paginate(currentPage - 1)}
+				>
+					&lt;
+				</button>
+				<span className="mx-2 font-semibold">{`Página ${currentPage} de ${totalPages}`}</span>
+				<button
+					disabled={currentPage === totalPages}
+					className={`px-4 py-2 rounded ${
+						currentPage === totalPages
+							? "bg-gray-300 text-gray-500 cursor-not-allowed"
+							: "bg-red-500 text-white hover:bg-red-600"
+					}`}
+					onClick={() => paginate(currentPage + 1)}
+				>
+					&gt;
+				</button>
 			</div>
 		</div>
 	);
 };
+
 export default CategoryPage;

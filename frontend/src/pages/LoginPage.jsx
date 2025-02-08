@@ -109,7 +109,7 @@ const LoginPage = () => {
         <p className="mt-8 text-center text-sm text-gray-400">
           Not a member?{" "}
           <Link
-            to="/singup"
+            to="/signup"
             className="font-medium text-red-500 hover:text-red-400"
           >
             Sign up now <ArrowRight className="inline h-4 w-4" />
