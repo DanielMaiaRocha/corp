@@ -1,95 +1,108 @@
 import { motion } from "framer-motion";
-import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import { MoveRight } from "lucide-react";
+import axios from "../../lib/axios";
 import { useCartStore } from "../../stores/useCartStore";
+import { initMercadoPago, Wallet } from "@mercadopago/sdk-react"; // Importe o SDK do Mercado Pago
 
-const GiftCouponCard = () => {
-	const [userInputCode, setUserInputCode] = useState("");
-	const { coupon, isCouponApplied, applyCoupon, getMyCoupon, removeCoupon } = useCartStore();
 
-	useEffect(() => {
-		getMyCoupon();
-	}, [getMyCoupon]);
+initMercadoPago("SUA_CHAVE_PUBLICA_DO_MERCADO_PAGO", {
+    locale: "pt-BR",
+});
 
-	useEffect(() => {
-		if (coupon) setUserInputCode(coupon.code);
-	}, [coupon]);
+const OrderSummary = () => {
+    const { total, subtotal, coupon, isCouponApplied, cart } = useCartStore();
 
-	const handleApplyCoupon = () => {
-		if (!userInputCode) return;
-		applyCoupon(userInputCode);
-	};
+    const savings = subtotal - total;
+    const formattedSubtotal = subtotal.toFixed(2);
+    const formattedTotal = total.toFixed(2);
+    const formattedSavings = savings.toFixed(2);
 
-	const handleRemoveCoupon = async () => {
-		await removeCoupon();
-		setUserInputCode("");
-	};
+    const handlePayment = async () => {
+        try {
+            // Envia os dados do carrinho para o backend e obtém o preferenceId
+            const res = await axios.post("/payments/create-mercado-pago-preference", {
+                products: cart,
+                couponCode: coupon ? coupon.code : null,
+            });
 
-	return (
-		<motion.div
-			className='space-y-4 rounded-lg border border-gray-700 bg-gray-800 p-4 shadow-sm sm:p-6'
-			initial={{ opacity: 0, y: 20 }}
-			animate={{ opacity: 1, y: 0 }}
-			transition={{ duration: 0.5, delay: 0.2 }}
-		>
-			<div className='space-y-4'>
-				<div>
-					<label htmlFor='voucher' className='mb-2 block text-sm font-medium text-gray-300'>
-						Do you have a voucher or gift card?
-					</label>
-					<input
-						type='text'
-						id='voucher'
-						className='block w-full rounded-lg border border-gray-600 bg-gray-700 
-            p-2.5 text-sm text-white placeholder-gray-400 focus:border-emerald-500 
-            focus:ring-emerald-500'
-						placeholder='Enter code here'
-						value={userInputCode}
-						onChange={(e) => setUserInputCode(e.target.value)}
-						required
-					/>
-				</div>
+            const { preferenceId } = res.data;
 
-				<motion.button
-					type='button'
-					className='flex w-full items-center justify-center rounded-lg bg-emerald-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-emerald-700 focus:outline-none focus:ring-4 focus:ring-emerald-300'
-					whileHover={{ scale: 1.05 }}
-					whileTap={{ scale: 0.95 }}
-					onClick={handleApplyCoupon}
-				>
-					Apply Code
-				</motion.button>
-			</div>
-			{isCouponApplied && coupon && (
-				<div className='mt-4'>
-					<h3 className='text-lg font-medium text-gray-300'>Applied Coupon</h3>
+            // Renderiza o botão de pagamento do Mercado Pago
+            if (preferenceId) {
+                const mp = new window.MercadoPago("SUA_CHAVE_PUBLICA_DO_MERCADO_PAGO", {
+                    locale: "pt-BR",
+                });
 
-					<p className='mt-2 text-sm text-gray-400'>
-						{coupon.code} - {coupon.discountPercentage}% off
-					</p>
+                mp.checkout({
+                    preference: {
+                        id: preferenceId,
+                    },
+                    autoOpen: true, // Abre o checkout automaticamente
+                });
+            }
+        } catch (error) {
+            console.error("Erro ao processar o pagamento:", error);
+        }
+    };
 
-					<motion.button
-						type='button'
-						className='mt-2 flex w-full items-center justify-center rounded-lg bg-red-600 
-            px-5 py-2.5 text-sm font-medium text-white hover:bg-red-700 focus:outline-none
-             focus:ring-4 focus:ring-red-300'
-						whileHover={{ scale: 1.05 }}
-						whileTap={{ scale: 0.95 }}
-						onClick={handleRemoveCoupon}
-					>
-						Remove Coupon
-					</motion.button>
-				</div>
-			)}
+    return (
+        <motion.div
+            className='space-y-4 rounded-lg border bg-white p-4 shadow-sm sm:p-6'
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+        >
+            <p className='text-xl font-semibold text-gray-700'>Revião do Pedido</p>
 
-			{coupon && (
-				<div className='mt-4'>
-					<h3 className='text-lg font-medium text-gray-300'>Your Available Coupon:</h3>
-					<p className='mt-2 text-sm text-gray-400'>
-						{coupon.code} - {coupon.discountPercentage}% off
-					</p>
-				</div>
-			)}
-		</motion.div>
-	);
+            <div className='space-y-4'>
+                <div className='space-y-2'>
+                    <dl className='flex items-center justify-between gap-4'>
+                        <dt className='text-base font-normal text-gray-700'>Preço Original</dt>
+                        <dd className='text-base font-medium text-white'>${formattedSubtotal}</dd>
+                    </dl>
+
+                    {savings > 0 && (
+                        <dl className='flex items-center justify-between gap-4'>
+                            <dt className='text-base font-normal text-gray-300'>Descontos</dt>
+                            <dd className='text-base font-medium text-red-400'>-${formattedSavings}</dd>
+                        </dl>
+                    )}
+
+                    {coupon && isCouponApplied && (
+                        <dl className='flex items-center justify-between gap-4'>
+                            <dt className='text-base font-normal text-gray-300'>Cupom ({coupon.code})</dt>
+                            <dd className='text-base font-medium text-red-400'>-{coupon.discountPercentage}%</dd>
+                        </dl>
+                    )}
+                    <dl className='flex items-center justify-between gap-4 border-t border-gray-600 pt-2'>
+                        <dt className='text-base font-bold text-white'>Total</dt>
+                        <dd className='text-base font-bold text-red-400'>${formattedTotal}</dd>
+                    </dl>
+                </div>
+
+                <motion.button
+                    className='flex w-full items-center justify-center rounded-lg bg-red-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-4 focus:ring-red-300'
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={handlePayment}
+                >
+                    Finalizar compra
+                </motion.button>
+
+                <div className='flex items-center justify-center gap-2'>
+                    <span className='text-sm font-normal text-gray-400'>or</span>
+                    <Link
+                        to='/'
+                        className='inline-flex items-center gap-2 text-sm font-medium text-red-400 underline hover:text-red-300 hover:no-underline'
+                    >
+                       Continue Comprando
+                        <MoveRight size={16} />
+                    </Link>
+                </div>
+            </div>
+        </motion.div>
+    );
 };
-export default GiftCouponCard;
+
+export default OrderSummary;

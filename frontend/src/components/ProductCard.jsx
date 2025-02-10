@@ -32,7 +32,7 @@ const ProductCard = ({ product }) => {
 			<div className="relative flex h-60 overflow-hidden rounded-t-lg">
 				<img
 					className="object-cover w-full h-80"
-					src={product.image}
+					src={product.mainImage}
 					alt="product image"
 				/>
 				<div className="absolute inset-0 bg-black bg-opacity-20" />
@@ -46,8 +46,8 @@ const ProductCard = ({ product }) => {
 					<p className="text-xl font-bold text-gray-700">${product.price}</p>
 				</div>
 				<button
-					className="flex items-center justify-center rounded-lg bg-emerald-600 px-3 py-2 text-center text-sm font-medium
-					 text-white hover:bg-emerald-700 focus:outline-none focus:ring-4 focus:ring-emerald-300"
+					className="flex items-center justify-center rounded-lg bg-[#e40612] px-3 py-2 text-center text-sm font-medium
+					 text-white hover:bg-red-700 focus:outline-none focus:ring-4 focus:ring-red-300"
 					onClick={handleAddToCart}
 				>
 					<ShoppingCart size={20} />

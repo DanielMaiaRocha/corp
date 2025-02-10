@@ -2,7 +2,7 @@ import { Instagram, MessageCircle   } from 'lucide-react';
 
 const Footer = () => {
   return (
-    <footer className="w-full bg-white fixed bottom-0 left-0 flex justify-between items-center px-4 py-2 mx-0 text-sm">
+    <footer className="w-full bg-white fixed bottom-0 left-0 flex justify-between items-center px-8 py-8  mx-0 text-sm">
       <div className="flex gap-2">
         <a
           href="https://instagram.com"

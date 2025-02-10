@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 const productSchema = new mongoose.Schema({
     name: {
         type: String,
-        required: true
+        required: true,
     },
     description: {
         type: String,
@@ -11,26 +11,29 @@ const productSchema = new mongoose.Schema({
     },
     price: {
         type: Number,
-        min: 0,
         required: true,
     },
-    image: { 
+    mainImage: { 
+        type: String,
+        required: true,
+    },
+    images: { 
         type: [String],
-        required: [true, 'At least one image is required']
+        default: [],
     },
     category: {
         type: String,
-        required: true
+        required: true,
     },
     isFeatured: {
         type: Boolean,
-        default: false
+        default: false,
     },
-    size: { 
+    size: {
         type: [String],
-        enum: ["PP", "P", "M", "G", "GG"], 
-        required: [true, 'At least one size is required']
-    }
+        enum: ["PP", "P", "M", "G", "GG"],
+        required: true,
+    },
 }, { timestamps: true });
 
 const Product = mongoose.model("Product", productSchema);

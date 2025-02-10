@@ -15,6 +15,8 @@ import CartPage from "./pages/CartPage";
 import PurchaseCancelPage from "./pages/PurchaseCancelPage";
 import PurchaseSuccessPage from "./pages/PurchaseSuccessPage";
 import ProductPage from "./pages/ProductPage";
+import SobreCorp from "./pages/SobreCorp";
+import Midias from "./pages/Midias";
 
 function App() {
   const { user, checkAuth, checkingAuth } = useUserStore();
@@ -38,6 +40,8 @@ function App() {
       <div className="flex-1 pt-36 relative z-10">
         <Routes>
           <Route path="/" element={<MainPage />} />
+          <Route path="/SobreCorp" element={<SobreCorp />} />
+          <Route path="/Midias" element={<Midias />} />
           <Route
             path="/signup"
             element={!user ? <SignUpPage /> : <Navigate to="/" />}

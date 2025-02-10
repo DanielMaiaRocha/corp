@@ -1,143 +1,149 @@
+import { MercadoPagoConfig, Payment } from "mercadopago";
 import Coupon from "../models/coupon.model.js";
 import Order from "../models/order.model.js";
-import { stripe } from "../lib/stripe.js";
+import dotenv from "dotenv";
 
+dotenv.config();
+
+// Configura o cliente do Mercado Pago
+const client = new MercadoPagoConfig({
+    accessToken: process.env.MERCADO_PAGO_ACCESS_TOKEN,
+    timeout: 5000,
+    idempotencyKey: 'abc', // Chave de idempotência (opcional)
+});
+
+const payment = new Payment(client);
+
+// Função para criar uma sessão de checkout (pagamento)
 export const createCheckoutSession = async (req, res) => {
-	try {
-		const { products, couponCode } = req.body;
+    try {
+        const { products, couponCode } = req.body;
 
-		if (!Array.isArray(products) || products.length === 0) {
-			return res.status(400).json({ error: "Invalid or empty products array" });
-		}
+        if (!Array.isArray(products) || products.length === 0) {
+            return res.status(400).json({ error: "Invalid or empty products array" });
+        }
 
-		let totalAmount = 0;
+        // Calcula o valor total do pagamento
+        let totalAmount = products.reduce((acc, product) => acc + product.price * product.quantity, 0);
 
-		const lineItems = products.map((product) => {
-			const amount = Math.round(product.price * 100); // stripe wants u to send in the format of cents
-			totalAmount += amount * product.quantity;
+        // Verifica e aplica o cupom de desconto
+        let coupon = null;
+        if (couponCode) {
+            coupon = await Coupon.findOne({ code: couponCode, userId: req.user._id, isActive: true });
+            if (coupon) {
+                totalAmount -= (totalAmount * coupon.discountPercentage) / 100;
+            }
+        }
 
-			return {
-				price_data: {
-					currency: "usd",
-					product_data: {
-						name: product.name,
-						images: [product.image],
-					},
-					unit_amount: amount,
-				},
-				quantity: product.quantity || 1,
-			};
-		});
+        // Cria o corpo do pagamento para o Mercado Pago
+        const body = {
+            transaction_amount: totalAmount,
+            description: "Compra de produtos", // Descrição do pagamento
+            payment_method_id: "pix", // Método de pagamento (PIX)
+            payer: {
+                email: req.user.email, // E-mail do usuário logado
+            },
+            metadata: {
+                userId: req.user._id.toString(),
+                couponCode: couponCode || "",
+                products: JSON.stringify(
+                    products.map((p) => ({
+                        id: p._id,
+                        quantity: p.quantity,
+                        price: p.price,
+                    }))
+                ),
+            },
+        };
 
-		let coupon = null;
-		if (couponCode) {
-			coupon = await Coupon.findOne({ code: couponCode, userId: req.user._id, isActive: true });
-			if (coupon) {
-				totalAmount -= Math.round((totalAmount * coupon.discountPercentage) / 100);
-			}
-		}
+        // Cria o pagamento no Mercado Pago
+        const result = await payment.create({ body });
 
-		const session = await stripe.checkout.sessions.create({
-			payment_method_types: ["card"],
-			line_items: lineItems,
-			mode: "payment",
-			success_url: `${process.env.CLIENT_URL}/purchase-success?session_id={CHECKOUT_SESSION_ID}`,
-			cancel_url: `${process.env.CLIENT_URL}/purchase-cancel`,
-			discounts: coupon
-				? [
-						{
-							coupon: await createStripeCoupon(coupon.discountPercentage),
-						},
-				  ]
-				: [],
-			metadata: {
-				userId: req.user._id.toString(),
-				couponCode: couponCode || "",
-				products: JSON.stringify(
-					products.map((p) => ({
-						id: p._id,
-						quantity: p.quantity,
-						price: p.price,
-					}))
-				),
-			},
-		});
+        // Verifica se o pagamento foi criado com sucesso
+        if (result && result.status === "pending") {
+            // Se o total for maior ou igual a 200, cria um novo cupom
+            if (totalAmount >= 200) {
+                await createNewCoupon(req.user._id);
+            }
 
-		if (totalAmount >= 20000) {
-			await createNewCoupon(req.user._id);
-		}
-		res.status(200).json({ id: session.id, totalAmount: totalAmount / 100 });
-	} catch (error) {
-		console.error("Error processing checkout:", error);
-		res.status(500).json({ message: "Error processing checkout", error: error.message });
-	}
+            // Retorna o ID do pagamento e o valor total
+            res.status(200).json({
+                id: result.id,
+                totalAmount: totalAmount,
+                qrCode: result.point_of_interaction?.transaction_data?.qr_code, // QR code para PIX
+            });
+        } else {
+            throw new Error("Erro ao criar o pagamento no Mercado Pago.");
+        }
+    } catch (error) {
+        console.error("Error processing checkout:", error);
+        res.status(500).json({ message: "Error processing checkout", error: error.message });
+    }
 };
 
+// Função para processar o sucesso do pagamento
 export const checkoutSuccess = async (req, res) => {
-	try {
-		const { sessionId } = req.body;
-		const session = await stripe.checkout.sessions.retrieve(sessionId);
+    try {
+        const { paymentId } = req.body;
 
-		if (session.payment_status === "paid") {
-			if (session.metadata.couponCode) {
-				await Coupon.findOneAndUpdate(
-					{
-						code: session.metadata.couponCode,
-						userId: session.metadata.userId,
-					},
-					{
-						isActive: false,
-					}
-				);
-			}
+        // Recupera os detalhes do pagamento no Mercado Pago
+        const paymentDetails = await payment.get(paymentId);
 
-			// create a new Order
-			const products = JSON.parse(session.metadata.products);
-			const newOrder = new Order({
-				user: session.metadata.userId,
-				products: products.map((product) => ({
-					product: product.id,
-					quantity: product.quantity,
-					price: product.price,
-				})),
-				totalAmount: session.amount_total / 100, 
-				stripeSessionId: sessionId,
-			});
+        if (paymentDetails.status === "approved") {
+            // Verifica se um cupom foi usado e o desativa
+            if (paymentDetails.metadata.couponCode) {
+                await Coupon.findOneAndUpdate(
+                    {
+                        code: paymentDetails.metadata.couponCode,
+                        userId: paymentDetails.metadata.userId,
+                    },
+                    {
+                        isActive: false,
+                    }
+                );
+            }
 
-			await newOrder.save();
+            // Cria um novo pedido
+            const products = JSON.parse(paymentDetails.metadata.products);
+            const newOrder = new Order({
+                user: paymentDetails.metadata.userId,
+                products: products.map((product) => ({
+                    product: product.id,
+                    quantity: product.quantity,
+                    price: product.price,
+                })),
+                totalAmount: paymentDetails.transaction_amount,
+                mercadoPagoPaymentId: paymentId,
+            });
 
-			res.status(200).json({
-				success: true,
-				message: "Payment successful, order created, and coupon deactivated if used.",
-				orderId: newOrder._id,
-			});
-		}
-	} catch (error) {
-		console.error("Error processing successful checkout:", error);
-		res.status(500).json({ message: "Error processing successful checkout", error: error.message });
-	}
+            await newOrder.save();
+
+            res.status(200).json({
+                success: true,
+                message: "Payment successful, order created, and coupon deactivated if used.",
+                orderId: newOrder._id,
+            });
+        } else {
+            throw new Error("Pagamento não aprovado.");
+        }
+    } catch (error) {
+        console.error("Error processing successful checkout:", error);
+        res.status(500).json({ message: "Error processing successful checkout", error: error.message });
+    }
 };
 
-async function createStripeCoupon(discountPercentage) {
-	const coupon = await stripe.coupons.create({
-		percent_off: discountPercentage,
-		duration: "once",
-	});
-
-	return coupon.id;
-}
-
+// Função para criar um novo cupom
 async function createNewCoupon(userId) {
-	await Coupon.findOneAndDelete({ userId });
+    await Coupon.findOneAndDelete({ userId });
 
-	const newCoupon = new Coupon({
-		code: "GIFT" + Math.random().toString(36).substring(2, 8).toUpperCase(),
-		discountPercentage: 10,
-		expirationDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), 
-		userId: userId,
-	});
+    const newCoupon = new Coupon({
+        code: "GIFT" + Math.random().toString(36).substring(2, 8).toUpperCase(),
+        discountPercentage: 10,
+        expirationDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // Expira em 30 dias
+        userId: userId,
+    });
 
-	await newCoupon.save();
+    await newCoupon.save();
 
-	return newCoupon;
+    return newCoupon;
 }

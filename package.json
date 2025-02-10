@@ -20,7 +20,7 @@
     "express": "^4.21.2",
     "ioredis": "^5.4.2",
     "jsonwebtoken": "^9.0.2",
-    "mercadopago": "^2.2.0",
+    "mercadopago": "^2.3.0",
     "mongoose": "^8.9.2",
     "stripe": "^17.5.0"
   },

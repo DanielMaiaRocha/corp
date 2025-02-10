@@ -29,8 +29,8 @@ const ProductPage = () => {
             if (foundProduct) {
                 setProduct(foundProduct);
                 // Verifica se há imagens antes de definir a imagem selecionada
-                if (foundProduct.image && foundProduct.image.length > 0) {
-                    setSelectedImage(foundProduct.image[0]);
+                if (foundProduct.images && foundProduct.images.length > 0) {
+                    setSelectedImage(foundProduct.images[0]);
                 }
             }
         }
@@ -61,15 +61,15 @@ const ProductPage = () => {
                 <div className="flex flex-col md:flex-row gap-4">
                     {/* Miniaturas das imagens */}
                     <div className="flex flex-row md:flex-col gap-2">
-                        {product.image && product.image.map((image, index) => (
+                        {product.images && product.images.map((images, index) => (
                             <img
                                 key={index}
-                                src={image}
+                                src={images}
                                 alt={`product-${index}`}
                                 className={`w-20 h-20 object-cover rounded-md cursor-pointer border ${
-                                    selectedImage === image ? "border-red-500" : "border-gray-300"
+                                    selectedImage === images ? "border-red-500" : "border-gray-300"
                                 }`}
-                                onClick={() => setSelectedImage(image)}
+                                onClick={() => setSelectedImage(images)}
                             />
                         ))}
                     </div>
@@ -93,11 +93,11 @@ const ProductPage = () => {
                     <p className="text-sm text-gray-500">{product.description}</p>
 
                     {/* Seletor de tamanho */}
-                    {product.sizes && product.sizes.length > 0 && (
+                    {product.size && product.size.length > 0 && (
                         <div className="flex items-center space-x-4">
                             <span className="font-medium">Tamanho:</span>
                             <div className="flex space-x-2">
-                                {product.sizes.map((size, index) => (
+                                {product.size.map((size, index) => (
                                     <button
                                         key={index}
                                         className={`px-3 py-1 rounded-md border text-sm font-medium ${

@@ -120,10 +120,11 @@ axios.interceptors.response.use(
         await refreshPromise;
         refreshPromise = null;
 
+        // Repete a requisição original com o novo token
         return axios(originalRequest);
       } catch (refreshError) {
         console.error("Token refresh failed:", refreshError.message); // Log de erro
-        useUserStore.getState().logout();
+        useUserStore.getState().logout(); // Desconecta o usuário em caso de falha
         return Promise.reject(refreshError);
       }
     }
