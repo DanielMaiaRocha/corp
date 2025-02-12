@@ -4,6 +4,7 @@ import "swiper/css";
 import "swiper/css/autoplay";
 import { Autoplay } from "swiper/modules";
 import CategoryItem from "../components/Category";
+import FeaturedProducts from "../components/FeaturedProducts";
 import { useProductStore } from "../../stores/useProductStore";
 
 const categories = [
@@ -41,6 +42,7 @@ const HomePage = () => {
           ))}
         </Swiper>
       </div>
+      {!isLoading && products.length > 0 && <FeaturedProducts featuredProducts={products} />}
     </div>
   );
 };

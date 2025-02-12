@@ -34,7 +34,7 @@ const FeaturedProducts = ({ featuredProducts }) => {
     const isEndDisabled = currentIndex >= featuredProducts.length - itemsPerPage;
 
     return (
-        <div className='py-12'>
+        <div className='py-20'>
             <div className='container mx-auto px-4'>
                 <h2 className='text-center text-2xl sm:text-3xl font-bold font-leagueGothic text-black mb-4'>Destaques</h2>
                 <div className='relative'>
@@ -50,7 +50,7 @@ const FeaturedProducts = ({ featuredProducts }) => {
                                         <Link to={`/product/${product._id}`} className="block">
                                             <div className='overflow-hidden'>
                                                 <img
-                                                    src={product.image}
+                                                    src={product.mainImage}
                                                     alt={product.name}
                                                     className='w-full h-48 object-cover transition-transform duration-300 ease-in-out hover:scale-110'
                                                 />
@@ -65,7 +65,7 @@ const FeaturedProducts = ({ featuredProducts }) => {
                                         {/* Botão "Add to Cart" fora do Link */}
                                         <div className='p-4 pt-0'>
                                             <button
-                                                onClick={() => addToCart(product)}
+                                                onClick={() => addToCart(product)} 
                                                 className='w-full bg-[#e40612] hover:bg-red-500 text-white font-semibold py-2 px-4 rounded transition-colors duration-300 
                                                 flex items-center justify-center'
                                             >

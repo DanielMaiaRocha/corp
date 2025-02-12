@@ -27,9 +27,43 @@ export const useUserStore = create((set, get) => ({
     } catch (error) {
       set({ loading: false });
       console.error("Signup error:", error.response?.data || error.message); // Log de erro
-      toast.error(error.response?.data?.message || "An error occurred during signup");
+      toast.error(
+        error.response?.data?.message || "An error occurred during signup"
+      );
     }
   },
+
+  getProfile: async () => {
+    set({ loading: true });
+
+    try {
+      const response = await axios.get("/auth/profile");
+      set({ user: response.data, loading: false });
+    } catch (error) {
+      console.error(
+        "Error fetching profile:",
+        error.response?.data || error.message
+      );
+      set({ loading: false });
+      toast.error("Failed to load profile");
+    }
+  },
+
+  // Método para atualizar o perfil do usuário
+  updateProfile: async (formData) => {
+    set({ loading: true });
+  
+    try {
+      const res = await axios.put("/auth/profile", formData);
+      set({ user: res.data, loading: false });
+      toast.success("Profile updated successfully!");
+    } catch (error) {
+      set({ loading: false });
+      console.error("Update profile error:", error.response?.data || error.message);
+      toast.error(error.response?.data?.message || "An error occurred while updating profile");
+    }
+  },
+  
 
   // Método de login
   login: async (email, password) => {
@@ -44,7 +78,9 @@ export const useUserStore = create((set, get) => ({
     } catch (error) {
       set({ loading: false });
       console.error("Login error:", error.response?.data || error.message); // Log de erro
-      toast.error(error.response?.data?.message || "An error occurred during login");
+      toast.error(
+        error.response?.data?.message || "An error occurred during login"
+      );
     }
   },
 
@@ -57,7 +93,9 @@ export const useUserStore = create((set, get) => ({
       toast.success("Logged out successfully!");
     } catch (error) {
       console.error("Logout error:", error.response?.data || error.message); // Log de erro
-      toast.error(error.response?.data?.message || "An error occurred during logout");
+      toast.error(
+        error.response?.data?.message || "An error occurred during logout"
+      );
     }
   },
 
@@ -89,7 +127,10 @@ export const useUserStore = create((set, get) => ({
       set({ checkingAuth: false });
       return response.data;
     } catch (error) {
-      console.error("Token refresh error:", error.response?.data || error.message); // Log de erro
+      console.error(
+        "Token refresh error:",
+        error.response?.data || error.message
+      ); // Log de erro
       set({ user: null, checkingAuth: false });
       throw error;
     }

@@ -149,3 +149,54 @@ export const getProfile = async (req, res) => {
     res.status(500).json({ message: "Server error", error: error.message });
   }
 };
+
+
+export const updateProfile = async (req, res) => {
+  try {
+    const userId = req.user._id; // Obtém o ID do usuário autenticado
+    const { name, email, password, phone, address, zipCode } = req.body;
+
+    // Verifica se o usuário existe
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Atualiza os campos se forem fornecidos
+    if (name) user.name = name;
+    if (email) {
+      // Verifica se o novo email já está em uso por outro usuário
+      const emailExists = await User.findOne({ email });
+      if (emailExists && emailExists._id.toString() !== userId.toString()) {
+        return res.status(400).json({ message: "Email already in use" });
+      }
+      user.email = email;
+    }
+    if (password) {
+      user.password = password; // O middleware de hash será ativado antes do save()
+    }
+    if (phone) user.phone = phone;
+    if (address) user.address = address;
+    if (zipCode) user.zipCode = zipCode;
+
+    // Salva as alterações no banco de dados
+    await user.save();
+
+    // Retorna a resposta sem informações sensíveis
+    res.status(200).json({
+      message: "Profile updated successfully",
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        address: user.address,
+        zipCode: user.zipCode,
+        role: user.role,
+      },
+    });
+  } catch (error) {
+    console.error("Error in updateProfile controller:", error.message); // Log de erro detalhado
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
