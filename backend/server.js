@@ -1,6 +1,7 @@
 import express from "express";
 import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
+import cors from "cors";
 
 import authRoutes from "./routes/auth.route.js";
 import productRoutes from "./routes/product.route.js";
@@ -16,9 +17,14 @@ import { connectDB } from "./lib/db.js";
 const app = express();
 const PORT = process.env.PORT || 5500;
 
+
+app.use(cors({
+    origin: process.env.FRONTEND_URL || "https://corp-seven-tawny.vercel.app/",
+    credentials: true
+}));
+
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ limit: "50mb", extended: true }));
-
 app.use(cookieParser());
 
 app.use("/api/auth", authRoutes);
@@ -29,6 +35,6 @@ app.use("/api/payment", paymentRoutes);
 app.use("/api/analytics", analyticsRoutes);
 
 app.listen(PORT, () => {
-    console.log("Server is running on port on http://localhost:" + PORT);
+    console.log("Server is running on http://localhost:" + PORT);
     connectDB();
 });
