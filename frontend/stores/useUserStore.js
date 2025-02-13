@@ -30,6 +30,31 @@ export const useUserStore = create(
         }
       },
 
+      // Método de login
+      login: async (email, password) => {
+        set({ loading: true });
+
+        try {
+          const res = await axios.post("/auth/login", { email, password });
+          set({ user: res.data, loading: false });
+          toast.success("Logged in successfully!");
+        } catch (error) {
+          set({ loading: false });
+          toast.error(error.response?.data?.message || "An error occurred during login");
+        }
+      },
+
+      // Método de logout
+      logout: async () => {
+        try {
+          await axios.post("/auth/logout");
+          set({ user: null });
+          toast.success("Logged out successfully!");
+        } catch (error) {
+          toast.error(error.response?.data?.message || "An error occurred during logout");
+        }
+      },
+
       // Método para buscar o perfil do usuário
       getProfile: async () => {
         set({ loading: true });
@@ -57,31 +82,6 @@ export const useUserStore = create(
         }
       },
 
-      // Método de login
-      login: async (email, password) => {
-        set({ loading: true });
-
-        try {
-          const res = await axios.post("/auth/login", { email, password });
-          set({ user: res.data, loading: false });
-          toast.success("Logged in successfully!");
-        } catch (error) {
-          set({ loading: false });
-          toast.error(error.response?.data?.message || "An error occurred during login");
-        }
-      },
-
-      // Método de logout
-      logout: async () => {
-        try {
-          await axios.post("/auth/logout");
-          set({ user: null });
-          toast.success("Logged out successfully!");
-        } catch (error) {
-          toast.error(error.response?.data?.message || "An error occurred during logout");
-        }
-      },
-
       // Método para verificar a autenticação do usuário
       checkAuth: async () => {
         set({ checkingAuth: true });
@@ -101,17 +101,19 @@ export const useUserStore = create(
         set({ checkingAuth: true });
 
         try {
-          const response = await axios.post("/auth/refresh-token");
+          console.log("Fazendo requisição POST para /auth/refresh-token");
+          const response = await axios.post("/auth/refresh-token"); // Garante que seja POST
           set({ checkingAuth: false });
           return response.data;
         } catch (error) {
+          console.error("Erro ao renovar o token:", error.response?.data || error.message);
           set({ user: null, checkingAuth: false });
           throw error;
         }
       },
     }),
     {
-      name: "user-store", // Persistindo no localStorage
+      name: "user-store",
       getStorage: () => localStorage,
     }
   )
@@ -137,8 +139,10 @@ axios.interceptors.response.use(
           await refreshPromise;
         }
 
-        return axios(originalRequest);
+        console.log("Repetindo requisição original após refresh do token...");
+        return axios(originalRequest); // Refaz a requisição original após o refresh do token
       } catch (refreshError) {
+        console.error("Falha ao renovar o token, deslogando o usuário...");
         useUserStore.getState().logout();
         return Promise.reject(refreshError);
       }
