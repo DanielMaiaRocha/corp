@@ -39,6 +39,85 @@ const setCookies = (res, acessToken, refreshToken) => {
   console.log("Cookies set successfully");
 };
 
+export const signup = async (req, res) => {
+  try {
+    const { email, password, name } = req.body;
+    const userExists = await User.findOne({ email });
+
+    if (userExists) {
+      return res.status(400).json({ message: "User already exists" });
+    }
+
+    const user = await User.create({ name, email, password });
+
+    const { acessToken, refreshToken } = generateTokens(user._id);
+    await storeRefreshToken(user._id, refreshToken);
+    setCookies(res, acessToken, refreshToken);
+
+    res.status(201).json({
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      },
+    });
+  } catch (error) {
+    console.log("Error in signup controller", error.message);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const login = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    const user = await User.findOne({ email });
+
+    if (user && (await user.comparePassword(password))) {
+      const { acessToken, refreshToken } = generateTokens(user._id);
+
+      await storeRefreshToken(user._id, refreshToken);
+      setCookies(res, acessToken, refreshToken);
+
+      res.json({
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      });
+    } else {
+      res.status(401).json({ message: "Invalid email or password" });
+    }
+  } catch (error) {
+    console.log("Error in login controller", error.message);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const logout = async (req, res) => {
+  try {
+    const refreshToken = req.cookies.refreshToken;
+
+    if (refreshToken) {
+      try {
+        const decoded = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SCT);
+        await redis.del(`refresh_token:${decoded.userId}`);
+        console.log("Refresh token removed from Redis for user:", decoded.userId);
+      } catch (error) {
+        console.log("Error verifying refresh token on logout:", error.message);
+      }
+    }
+
+    res.clearCookie("acessToken");
+    res.clearCookie("refreshToken");
+
+    res.json({ message: "Logged out successfully" });
+  } catch (error) {
+    console.log("Error in logout controller:", error.message);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
 export const refreshToken = async (req, res) => {
   try {
     const { refreshToken } = req.cookies;
@@ -87,6 +166,57 @@ export const refreshToken = async (req, res) => {
     res.json({ message: "Token refreshed successfully" });
   } catch (error) {
     console.log("Error in refreshToken controller:", error.message);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+export const getProfile = async (req, res) => {
+  try {
+    res.json(req.user);
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+export const updateProfile = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const { name, email, password, phone, address, zipCode } = req.body;
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    if (name) user.name = name;
+    if (email) {
+      const emailExists = await User.findOne({ email });
+      if (emailExists && emailExists._id.toString() !== userId.toString()) {
+        return res.status(400).json({ message: "Email already in use" });
+      }
+      user.email = email;
+    }
+    if (password) user.password = password;
+    if (phone) user.phone = phone;
+    if (address) user.address = address;
+    if (zipCode) user.zipCode = zipCode;
+
+    await user.save();
+
+    res.status(200).json({
+      message: "Profile updated successfully",
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        address: user.address,
+        zipCode: user.zipCode,
+        role: user.role,
+      },
+    });
+  } catch (error) {
+    console.error("Error in updateProfile controller:", error.message);
     res.status(500).json({ message: "Server error", error: error.message });
   }
 };
