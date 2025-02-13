@@ -37,7 +37,7 @@ const SobreCorp = () => {
       {/* Texto à Esquerda com Imagem à Direita */}
       <div className="flex flex-col md:flex-row-reverse items-center gap-6">
         <img
-          src="/images/corp7.jpg"
+          src="/images/corp7.jpeg"
           alt="Sunday session"
           className="w-full md:w-[45%] rounded-sm shadow-md"
         />
@@ -52,7 +52,7 @@ const SobreCorp = () => {
       {/* Terceira Imagem com Texto à Direita */}
       <div className="flex flex-col md:flex-row items-center gap-6">
         <img
-          src="/images/corp5.jpg"
+          src="/images/corp5.jpeg"
           alt="Foto Grey"
           className="w-full md:w-[45%] rounded-sm shadow-md"
         />
@@ -64,7 +64,7 @@ const SobreCorp = () => {
       </div>
       <div className="flex flex-col md:flex-row-reverse items-center gap-6">
         <img
-          src="/images/corp6.jpg"
+          src="/images/corp6.jpeg"
           alt="Sunday session"
           className="w-full md:w-[45%] rounded-sm shadow-md"
         />
