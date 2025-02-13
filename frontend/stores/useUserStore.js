@@ -82,7 +82,7 @@ export const useUserStore = create(
         }
       },
 
-      // Método para verificar a autenticação do usuário
+      // Método para verificar a autenticação do usuário (chamado apenas na inicialização do app)
       checkAuth: async () => {
         set({ checkingAuth: true });
 
@@ -94,16 +94,22 @@ export const useUserStore = create(
         }
       },
 
-      // Método para renovar o token de autenticação
+      // Método para renovar o token de autenticação (só é chamado quando necessário)
       refreshToken: async () => {
-        if (get().checkingAuth) return;
-
+        if (get().checkingAuth) return; // Evita chamadas duplicadas
+        
         set({ checkingAuth: true });
 
         try {
-          console.log("Fazendo requisição POST para /auth/refresh-token");
-          const response = await axios.post("/auth/refresh-token"); // Garante que seja POST
-          set({ checkingAuth: false });
+          const response = await axios.post("/auth/refresh-token", {
+            refreshToken: get().user?.refreshToken, // Envia o refreshToken corretamente
+          });
+
+          set({
+            user: { ...get().user, accessToken: response.data.accessToken },
+            checkingAuth: false,
+          });
+
           return response.data;
         } catch (error) {
           console.error("Erro ao renovar o token:", error.response?.data || error.message);
