@@ -16,7 +16,8 @@ const CreateProductForm = () => {
         category: "",
         mainImage: "", // Imagem principal
         images: [], // Array para imagens adicionais
-        size: [], // Inicializa sem tamanhos selecionados
+        size: [],
+        quantity: 0, 
     });
 
     const [fileInfo, setFileInfo] = useState([]); // Armazena informações dos arquivos
@@ -39,7 +40,7 @@ const CreateProductForm = () => {
 
         try {
             await createProduct(newProduct);
-            setNewProduct({ name: "", description: "", price: "", category: "", mainImage: "", images: [], size: [] });
+            setNewProduct({ name: "", description: "", price: "", category: "", mainImage: "", images: [], size: [], quantity: "", });
             setFileInfo([]);
             setError("");
         } catch {
@@ -234,6 +235,21 @@ const CreateProductForm = () => {
                             </option>
                         ))}
                     </select>
+                </div>
+                <div>
+                    <label htmlFor='quantity' className='block text-sm font-medium text-gray-700'>
+                        Quantidade em estoque
+                    </label>
+                    <input
+                        type='number'
+                        id='quantity'
+                        name='quantity'
+                        value={newProduct.quantity}
+                        onChange={(e) => setNewProduct({ ...newProduct, quantity: e.target.value })}
+                        min="1"
+                        className='mt-1 block w-full bg-white border border-gray-100 rounded-md shadow-sm py-2 px-3 text-black focus:outline-none focus:ring-1 focus:ring-[#e40612] focus:border-[#e40612]'
+                        required
+                    />
                 </div>
 
                 {/* Input para os tamanhos disponíveis */}

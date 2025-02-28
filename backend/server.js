@@ -9,6 +9,7 @@ import cartRoutes from "./routes/cart.route.js";
 import couponRoutes from "./routes/coupon.route.js";
 import paymentRoutes from "./routes/payment.route.js";
 import analyticsRoutes from "./routes/analytics.route.js";
+import carouselRoutes from "./routes/carousel.routes.js";
 
 dotenv.config();
 
@@ -19,7 +20,7 @@ const PORT = process.env.PORT || 5500;
 
 
 app.use(cors({
-    origin: process.env.FRONTEND_URL || "https://corp-seven-tawny.vercel.app",
+    origin: process.env.FRONTEND_URL || "https://corp-seven-tawny.vercel.app/",
     credentials: true
 }));
 
@@ -33,6 +34,7 @@ app.use("/api/cart", cartRoutes);
 app.use("/api/coupons", couponRoutes);
 app.use("/api/payment", paymentRoutes);
 app.use("/api/analytics", analyticsRoutes);
+app.use("/api/carousel", carouselRoutes);
 
 app.listen(PORT, () => {
     console.log("Server is running on http://localhost:" + PORT);

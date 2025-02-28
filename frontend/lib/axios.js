@@ -1,9 +1,7 @@
 import axios from "axios";
 
-const API_URL = "https://corp2.onrender.com/api"; 
-
 const instance = axios.create({
-  baseURL: API_URL,
+  baseURL: "https://corp2.onrender.com",
   withCredentials: true, 
 });
 

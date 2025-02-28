@@ -36,7 +36,7 @@ export const getFeaturedProducts = async (req, res) => {
 
 export const createProduct = async (req, res) => {
     try {
-        const { name, description, price, mainImage, images, category, size } = req.body;
+        const { name, description, price, mainImage, images, category, size, quantity } = req.body;
 
         // Faz o upload da imagem principal para o Cloudinary
         const mainImageResponse = await cloudinary.uploader.upload(mainImage, { folder: "products" });
@@ -57,6 +57,7 @@ export const createProduct = async (req, res) => {
             images: uploadedImages, // Array de URLs das imagens adicionais
             category,
             size,
+            quantity,
         });
 
         res.status(201).json(product);

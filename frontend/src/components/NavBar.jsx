@@ -33,17 +33,14 @@ const NavBar = () => {
             <Link to="/SobreCorp" className="font-bold text-gray-800 hover:text-gray-900 transition">
               Sobre a Corp
             </Link>
-            <Link to="/featured" className="font-bold text-gray-800 hover:text-gray-900 transition">
-              Novidades
-            </Link>
             <Link to="/category/products" className="font-bold text-gray-800 hover:text-gray-900 transition">
-              Roupas
-            </Link>
-            <Link to="/featured" className="font-bold text-gray-800 hover:text-gray-900 transition">
               Drops
             </Link>
             <Link to="/Midias" className="font-bold text-gray-800 hover:text-gray-900 transition">
-              Mídias
+              Midias
+            </Link>
+            <Link to="/featured" className="font-bold text-gray-800 hover:text-gray-900 transition">
+              Creative Corporation
             </Link>
           </nav>
 
@@ -113,20 +110,17 @@ const NavBar = () => {
       {mobileMenuOpen && (
         <div className="md:hidden fixed top-24 left-0 w-full shadow-md bg-white z-50 py-6">
           <nav className="flex flex-col items-center gap-5 mt-4">
-            <Link to="/featured" className="text-gray-800 hover:text-red-600 transition" onClick={toggleMobileMenu}>
+            <Link to="/SobreCorp" className="text-gray-800 hover:text-red-600 transition" onClick={toggleMobileMenu}>
               Sobre a Corp
             </Link>
-            <Link to="/featured" className="text-gray-800 hover:text-red-600 transition" onClick={toggleMobileMenu}>
-              Novidades
-            </Link>
-            <Link to="/featured" className="text-gray-800 hover:text-red-600 transition" onClick={toggleMobileMenu}>
-              Roupas
-            </Link>
-            <Link to="/featured" className="text-gray-800 hover:text-red-600 transition" onClick={toggleMobileMenu}>
+            <Link to="/category/products" className="text-gray-800 hover:text-red-600 transition" onClick={toggleMobileMenu}>
               Drops
             </Link>
+            <Link to="/Midias" className="text-gray-800 hover:text-red-600 transition" onClick={toggleMobileMenu}>
+              Midias
+            </Link>
             <Link to="/featured" className="text-gray-800 hover:text-red-600 transition" onClick={toggleMobileMenu}>
-              Mídias
+              Creative Corporation
             </Link>
           </nav>
         </div>

@@ -1,25 +1,34 @@
-import { BarChart, PlusCircle, ShoppingBasket } from "lucide-react";
+import { BarChart, PlusCircle, ShoppingBasket, Image } from "lucide-react";
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 
 import AnalyticsTab from "../components/AnalyticsTab";
 import CreateProductForm from "../components/CreateProductForm";
+import CarouselForm from "../components/CarouselForm"; 	
 import ProductsList from "../components/ProductsList";
 import { useProductStore } from "../../stores/useProductStore";
 
 const tabs = [
-	{ id: "create", label: "Create Product", icon: PlusCircle },
-	{ id: "products", label: "Products", icon: ShoppingBasket },
-	{ id: "analytics", label: "Analytics", icon: BarChart },
+	{ id: "create", label: "Novo Produto", icon: PlusCircle },
+	{ id: "products", label: "Painel dos Produtos", icon: ShoppingBasket },
+	{ id: "carousel", label: "Editar Fotos", icon: Image },
+	{ id: "analytics", label: "Analitico", icon: BarChart },
 ];
 
 const AdminPage = () => {
 	const [activeTab, setActiveTab] = useState("create");
 	const { fetchAllProducts } = useProductStore();
+	const [selectedProduct, setSelectedProduct] = useState(null);
 
 	useEffect(() => {
 		fetchAllProducts();
 	}, [fetchAllProducts]);
+
+	// Função para abrir a aba de edição com o produto selecionado
+	const handleEditProduct = (product) => {
+		setSelectedProduct(product);
+		setActiveTab("edit");
+	};
 
 	return (
 		<div className='min-h-screen relative overflow-hidden'>
@@ -49,11 +58,15 @@ const AdminPage = () => {
 						</button>
 					))}
 				</div>
+
+				{/* Renderização Condicional das Abas */}
 				{activeTab === "create" && <CreateProductForm />}
-				{activeTab === "products" && <ProductsList />}
-				{activeTab === "analytics" && <AnalyticsTab />}
+				{activeTab === "products" && <ProductsList onEditProduct={handleEditProduct} />}
+				{activeTab === "carousel" && <CarouselForm />} 
+				{activeTab === "analytics" && <AnalyticsTab activeTab={activeTab} />}
 			</div>
 		</div>
 	);
 };
+
 export default AdminPage;

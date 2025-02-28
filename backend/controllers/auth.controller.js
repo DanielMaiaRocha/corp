@@ -25,14 +25,14 @@ const setCookies = (res, acessToken, refreshToken) => {
   res.cookie("acessToken", acessToken, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    sameSite: "none",
+    sameSite: "strict",
     maxAge: 15 * 60 * 1000, // 15 min
   });
 
   res.cookie("refreshToken", refreshToken, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    sameSite: "none",
+    sameSite: "strict",
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 dias
   });
 
@@ -137,6 +137,7 @@ export const refreshToken = async (req, res) => {
 
     const storedToken = await redis.get(`refresh_token:${decoded.userId}`);
     
+    
     if (!storedToken) {
       console.log("No refresh token found in Redis for user:", decoded.userId);
       return res.status(403).json({ message: "Refresh token not found" });
@@ -145,6 +146,7 @@ export const refreshToken = async (req, res) => {
     if (storedToken !== refreshToken) {
       console.log("Token mismatch: Received token does not match stored token in Redis");
       return res.status(403).json({ message: "Invalid refresh token" });
+      console.log("Token no Redis:", storedToken);
     }
 
     // Se todas as verificações passaram, gera um novo acessToken

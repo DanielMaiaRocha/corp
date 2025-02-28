@@ -21,7 +21,7 @@ const ProductsList = () => {
 							scope='col'
 							className='px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider'
 						>
-							Product
+							Product (Stock)
 						</th>
 						<th
 							scope='col'
@@ -35,7 +35,6 @@ const ProductsList = () => {
 						>
 							Category
 						</th>
-
 						<th
 							scope='col'
 							className='px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider'
@@ -64,7 +63,9 @@ const ProductsList = () => {
 										/>
 									</div>
 									<div className='ml-4'>
-										<div className='text-sm font-medium text-black'>{product.name}</div>
+										<div className='text-sm font-medium text-black'>
+											{product.name} - ({product.quantity} em estoque)
+										</div>
 									</div>
 								</div>
 							</td>

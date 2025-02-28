@@ -5,7 +5,7 @@ const Footer = () => {
     <footer className="w-full bg-white fixed bottom-0 left-0 flex justify-between items-center px-8 py-8  mx-0 text-sm">
       <div className="flex gap-2">
         <a
-          href="https://instagram.com"
+          href="https://instagram.com/corp_0ration/tagged/"
           target="_blank"
           rel="noopener noreferrer"
           className="text-gray-700 hover:text-gray-900"
@@ -28,7 +28,10 @@ const Footer = () => {
           rastreio
         </a>
         <a href="#cadastro-drop" className="hover:underline">
-          cadastro drop
+          FAQ
+        </a>
+        <a href="#cadastro-drop" className="hover:underline">
+          ajuda
         </a>
         <a href="#trocas-devolucoes" className="hover:underline">
           trocas e devoluções

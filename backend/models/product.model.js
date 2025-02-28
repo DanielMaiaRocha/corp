@@ -34,6 +34,11 @@ const productSchema = new mongoose.Schema({
         enum: ["PP", "P", "M", "G", "GG"],
         required: true,
     },
+    quantity: {
+        type: Number,
+        required: true,
+        min: 0, // Evita valores negativos
+    },
 }, { timestamps: true });
 
 const Product = mongoose.model("Product", productSchema);
