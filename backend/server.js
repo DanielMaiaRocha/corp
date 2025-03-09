@@ -20,7 +20,7 @@ const PORT = process.env.PORT || 5500;
 
 
 app.use(cors({
-    origin: process.env.FRONTEND_URL || "https://corp-seven-tawny.vercel.app/",
+    origin: process.env.FRONTEND_URL || "https://corp-seven-tawny.vercel.app",
     credentials: true
 }));
 
