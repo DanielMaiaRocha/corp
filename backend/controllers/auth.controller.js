@@ -25,14 +25,14 @@ const setCookies = (res, acessToken, refreshToken) => {
   res.cookie("acessToken", acessToken, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    sameSite: "strict",
+    sameSite: "none",
     maxAge: 15 * 60 * 1000, // 15 min
   });
 
   res.cookie("refreshToken", refreshToken, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    sameSite: "strict",
+    sameSite: "none",
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 dias
   });
 
@@ -161,7 +161,7 @@ export const refreshToken = async (req, res) => {
     res.cookie("acessToken", acessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      sameSite: "none",
       maxAge: 15 * 60 * 1000, // 15 min
     });
 
