@@ -39,7 +39,7 @@ const NavBar = () => {
             <Link to="/Midias" className="font-bold text-gray-800 hover:text-gray-900 transition">
               Midias
             </Link>
-            <Link to="/featured" className="font-bold text-gray-800 hover:text-gray-900 transition">
+            <Link to="/CorpDrops" className="font-bold text-gray-800 hover:text-gray-900 transition">
               Creative Corporation
             </Link>
           </nav>

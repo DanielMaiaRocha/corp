@@ -222,3 +222,38 @@ export const updateProfile = async (req, res) => {
     res.status(500).json({ message: "Server error", error: error.message });
   }
 };
+
+export const CorpFormRegister = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const { name, age, phone, sex, size, corpRec } = req.body;
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Verifica se já existe um formulário associado ao usuário
+    const existingForm = await CorpForm.findOne({ user: userId });
+    if (existingForm) {
+      return res.status(400).json({ message: "User already has a form registered" });
+    }
+
+    // Criar novo formulário
+    const newForm = new CorpForm({
+      user: userId,
+      name,
+      age,
+      phone,
+      sex,
+      size,
+      corpRec
+    });
+
+    await newForm.save();
+
+    res.status(201).json({ message: "Form registered successfully", form: newForm });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};

@@ -82,6 +82,23 @@ export const useUserStore = create(
         }
       },
 
+     registerCorpForm : async (formData, updateUser) => {
+        try {
+          const res = await axios.post("/profile/cadastro-drops", formData);
+          
+          // Atualiza o estado do usuário na store
+          if (updateUser) {
+            updateUser(res.data.user);
+          }
+      
+          toast.success("Formulário cadastrado com sucesso!");
+          return res.data;
+        } catch (error) {
+          toast.error(error.response?.data?.message || "Erro ao cadastrar formulário");
+          throw error;
+        }
+      },
+
       // Método para verificar a autenticação do usuário (chamado apenas na inicialização do app)
       checkAuth: async () => {
         set({ checkingAuth: true });
@@ -124,6 +141,8 @@ export const useUserStore = create(
     }
   )
 );
+
+
 
 // Interceptor do Axios para lidar com erros e renovação de token
 let refreshPromise = null;

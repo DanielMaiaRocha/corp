@@ -48,6 +48,23 @@ const userSchema = new mongoose.Schema(
       enum: ["customer", "admin"],
       default: "customer",
     },
+    age: {
+      type: String,
+      trim: true,
+    },
+    sex: {
+      type: Boolean,
+      enum: ["Masculino", "Feminino"],
+    },
+    size: {
+      type: [String],
+      enum: ["PP", "P", "M", "G", "GG"],
+      required: true,
+    },
+    corpRec: {
+      type: String,
+      trim: true
+    },
   },
   {
     timestamps: true,
