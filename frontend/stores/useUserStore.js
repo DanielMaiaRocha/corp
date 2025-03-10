@@ -84,7 +84,7 @@ export const useUserStore = create(
 
      registerCorpForm : async (formData, updateUser) => {
         try {
-          const res = await axios.post("/profile/cadastro-drops", formData);
+          const res = await axios.post("/profile/cadastroDrops", formData);
           
           // Atualiza o estado do usuário na store
           if (updateUser) {

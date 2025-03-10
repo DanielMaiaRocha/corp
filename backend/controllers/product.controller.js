@@ -157,3 +157,47 @@ async function updateFeaturedProductsCache() {
         console.log("error in update cache function");
     }
 }
+
+export const updateProduct = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { name, description, price, mainImage, images, category, size, quantity } = req.body;
+
+        const product = await Product.findById(id);
+        if (!product) {
+            return res.status(404).json({ message: "Product not found" });
+        }
+
+        // Se houver uma nova imagem principal, faz o upload para o Cloudinary
+        if (mainImage && mainImage !== product.mainImage) {
+            const mainImageResponse = await cloudinary.uploader.upload(mainImage, { folder: "products" });
+            product.mainImage = mainImageResponse.secure_url;
+        }
+
+        // Se houver novas imagens, faz o upload para o Cloudinary
+        if (images && images.length > 0) {
+            const uploadedImages = [];
+            for (const image of images) {
+                const cloudinaryResponse = await cloudinary.uploader.upload(image, { folder: "products" });
+                uploadedImages.push(cloudinaryResponse.secure_url);
+            }
+            product.images = uploadedImages;
+        }
+
+        // Atualiza os demais campos
+        product.name = name || product.name;
+        product.description = description || product.description;
+        product.price = price || product.price;
+        product.category = category || product.category;
+        product.size = size || product.size;
+        product.quantity = quantity || product.quantity;
+
+        // Salva as mudanças no banco de dados
+        const updatedProduct = await product.save();
+
+        res.json(updatedProduct);
+    } catch (error) {
+        console.log("Error in updateProduct controller", error.message);
+        res.status(500).json({ message: "Server error", error: error.message });
+    }
+};

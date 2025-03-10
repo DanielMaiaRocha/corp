@@ -98,4 +98,20 @@ export const useProductStore = create((set) => ({
             "Failed to fetch featured products"
         );
     },
+
+    updateProduct: async (productId, updatedData) => {
+        await handleRequest(
+            () => axios.put(`/products/${productId}`, updatedData),
+            set,
+            (updatedProduct) => {
+                set((prevState) => ({
+                    products: prevState.products.map((product) =>
+                        product._id === productId ? updatedProduct : product
+                    ),
+                }));
+                toast.success("Product updated successfully!");
+            },
+            "Failed to update product"
+        );
+    },
 }));

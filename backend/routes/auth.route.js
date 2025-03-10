@@ -10,6 +10,6 @@ router.post("/logout", logout)
 router.post("/refresh-token", refreshToken)
 router.get("/profile", protectRoute ,getProfile)
 router.put("/profile", protectRoute ,updateProfile)
-router.post("/profile/cadastro-drops", protectRoute , CorpFormRegister)
+router.post("/profile/cadastroDrops", protectRoute , CorpFormRegister)
 
 export default router
