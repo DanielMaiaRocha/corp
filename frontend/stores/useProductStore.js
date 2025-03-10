@@ -106,7 +106,7 @@ export const useProductStore = create((set) => ({
             (updatedProduct) => {
                 set((prevState) => ({
                     products: prevState.products.map((product) =>
-                        product._id === productId ? updatedProduct : product
+                        product._id === productId ? { ...product, ...updatedProduct } : product
                     ),
                 }));
                 toast.success("Product updated successfully!");

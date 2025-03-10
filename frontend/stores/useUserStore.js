@@ -21,14 +21,30 @@ export const useUserStore = create(
         }
 
         try {
-          const res = await axios.post("/auth/signup", { name, email, password });
+          const res = await axios.post("/auth/signup", {
+            name,
+            email,
+            password,
+          });
           set({ user: res.data, loading: false });
           toast.success("Account created successfully!");
         } catch (error) {
           set({ loading: false });
-          toast.error(error.response?.data?.message || "An error occurred during signup");
+          toast.error(
+            error.response?.data?.message || "An error occurred during signup"
+          );
         }
       },
+
+      fetchUsers: async () => {
+        set({ loading: true });
+        try {
+            const response = await axios.get("/auth/");
+            set({ users: response.data, loading: false });
+        } catch (error) {
+            set({ error: error.message, loading: false });
+        }
+    },
 
       // Método de login
       login: async (email, password) => {
@@ -40,7 +56,9 @@ export const useUserStore = create(
           toast.success("Logged in successfully!");
         } catch (error) {
           set({ loading: false });
-          toast.error(error.response?.data?.message || "An error occurred during login");
+          toast.error(
+            error.response?.data?.message || "An error occurred during login"
+          );
         }
       },
 
@@ -51,7 +69,9 @@ export const useUserStore = create(
           set({ user: null });
           toast.success("Logged out successfully!");
         } catch (error) {
-          toast.error(error.response?.data?.message || "An error occurred during logout");
+          toast.error(
+            error.response?.data?.message || "An error occurred during logout"
+          );
         }
       },
 
@@ -78,27 +98,46 @@ export const useUserStore = create(
           toast.success("Profile updated successfully!");
         } catch (error) {
           set({ loading: false });
-          toast.error(error.response?.data?.message || "An error occurred while updating profile");
+          toast.error(
+            error.response?.data?.message ||
+              "An error occurred while updating profile"
+          );
         }
       },
 
-     registerCorpForm : async (formData, updateUser) => {
+      registerCorpForm: async (formData, updateUser) => {
         try {
-          const res = await axios.post("/profile/cadastroDrops", formData);
-          
-          // Atualiza o estado do usuário na store
+          const res = await axios.put("/drops/cadastroDrops", formData);
+
+          // Atualiza o estado do usuário na store, se necessário
           if (updateUser) {
             updateUser(res.data.user);
           }
-      
+
           toast.success("Formulário cadastrado com sucesso!");
           return res.data;
         } catch (error) {
-          toast.error(error.response?.data?.message || "Erro ao cadastrar formulário");
+          toast.error(
+            error.response?.data?.message || "Erro ao cadastrar formulário"
+          );
           throw error;
         }
       },
+      fetchCorpForm: async () => {
+        set({ loading: true });
 
+        try {
+          const res = await axios.get("/drops/cadastroDrops"); // Rota para buscar o formulário pelo usuário logado
+          set({ corpForm: res.data.form, loading: false });
+          return res.data.form;
+        } catch (error) {
+          set({ loading: false });
+          toast.error(
+            error.response?.data?.message || "Erro ao buscar formulário"
+          );
+          throw error;
+        }
+      },
       // Método para verificar a autenticação do usuário (chamado apenas na inicialização do app)
       checkAuth: async () => {
         set({ checkingAuth: true });
@@ -114,7 +153,7 @@ export const useUserStore = create(
       // Método para renovar o token de autenticação (só é chamado quando necessário)
       refreshToken: async () => {
         if (get().checkingAuth) return; // Evita chamadas duplicadas
-        
+
         set({ checkingAuth: true });
 
         try {
@@ -129,7 +168,10 @@ export const useUserStore = create(
 
           return response.data;
         } catch (error) {
-          console.error("Erro ao renovar o token:", error.response?.data || error.message);
+          console.error(
+            "Erro ao renovar o token:",
+            error.response?.data || error.message
+          );
           set({ user: null, checkingAuth: false });
           throw error;
         }
@@ -141,8 +183,6 @@ export const useUserStore = create(
     }
   )
 );
-
-
 
 // Interceptor do Axios para lidar com erros e renovação de token
 let refreshPromise = null;

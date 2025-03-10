@@ -158,46 +158,103 @@ async function updateFeaturedProductsCache() {
     }
 }
 
-export const updateProduct = async (req, res) => {
-    try {
-        const { id } = req.params;
-        const { name, description, price, mainImage, images, category, size, quantity } = req.body;
-
-        const product = await Product.findById(id);
-        if (!product) {
-            return res.status(404).json({ message: "Product not found" });
-        }
-
-        // Se houver uma nova imagem principal, faz o upload para o Cloudinary
-        if (mainImage && mainImage !== product.mainImage) {
-            const mainImageResponse = await cloudinary.uploader.upload(mainImage, { folder: "products" });
-            product.mainImage = mainImageResponse.secure_url;
-        }
-
-        // Se houver novas imagens, faz o upload para o Cloudinary
-        if (images && images.length > 0) {
-            const uploadedImages = [];
-            for (const image of images) {
-                const cloudinaryResponse = await cloudinary.uploader.upload(image, { folder: "products" });
-                uploadedImages.push(cloudinaryResponse.secure_url);
-            }
-            product.images = uploadedImages;
-        }
-
-        // Atualiza os demais campos
-        product.name = name || product.name;
-        product.description = description || product.description;
-        product.price = price || product.price;
-        product.category = category || product.category;
-        product.size = size || product.size;
-        product.quantity = quantity || product.quantity;
-
-        // Salva as mudanças no banco de dados
-        const updatedProduct = await product.save();
-
-        res.json(updatedProduct);
-    } catch (error) {
-        console.log("Error in updateProduct controller", error.message);
-        res.status(500).json({ message: "Server error", error: error.message });
+const extractPublicId = (url) => {
+    const matches = url.match(/\/v\d+\/(.+?)\./);
+    return matches ? matches[1] : null;
+  };
+  
+  // Função para excluir uma imagem do Cloudinary
+  const deleteImageFromCloudinary = async (imageUrl, folder = "products") => {
+    const publicId = extractPublicId(imageUrl);
+    if (publicId) {
+      try {
+        await cloudinary.uploader.destroy(`${folder}/${publicId}`);
+      } catch (error) {
+        console.error(`Error deleting image from Cloudinary: ${error.message}`);
+      }
     }
-};
+  };
+  
+  // Função para fazer upload de uma imagem para o Cloudinary
+  const uploadImageToCloudinary = async (image, folder = "products") => {
+    try {
+      const response = await cloudinary.uploader.upload(image, { folder });
+      return response.secure_url;
+    } catch (error) {
+      console.error(`Error uploading image to Cloudinary: ${error.message}`);
+      throw new Error("Failed to upload image");
+    }
+  };
+  
+  // Controlador para atualizar um produto
+  export const updateProduct = async (req, res) => {
+    try {
+      const { id } = req.params;
+      const {
+        name,
+        description,
+        price,
+        mainImage,
+        images,
+        category,
+        size,
+        quantity,
+      } = req.body;
+  
+      // Verifica se o produto existe
+      const product = await Product.findById(id);
+      if (!product) {
+        return res.status(404).json({ message: "Product not found" });
+      }
+  
+      // Atualiza a imagem principal, se fornecida
+      let newMainImageUrl = product.mainImage;
+      if (mainImage && mainImage !== product.mainImage) {
+        // Exclui a imagem principal antiga
+        await deleteImageFromCloudinary(product.mainImage);
+  
+        // Faz o upload da nova imagem principal
+        newMainImageUrl = await uploadImageToCloudinary(mainImage);
+      }
+  
+      // Atualiza as imagens adicionais, se fornecidas
+      let newImagesUrls = product.images;
+      if (images && images.length > 0 && JSON.stringify(images) !== JSON.stringify(product.images)) {
+        // Exclui as imagens adicionais antigas
+        await Promise.all(
+          product.images.map((imageUrl) => deleteImageFromCloudinary(imageUrl))
+        );
+  
+        // Faz o upload das novas imagens adicionais
+        newImagesUrls = await Promise.all(
+          images.map((image) => uploadImageToCloudinary(image))
+        );
+      }
+  
+      // Atualiza os campos do produto
+      const updatedFields = {
+        name: name || product.name,
+        description: description || product.description,
+        price: price || product.price,
+        mainImage: newMainImageUrl,
+        images: newImagesUrls,
+        category: category || product.category,
+        size: size || product.size,
+        quantity: quantity || product.quantity,
+      };
+  
+      const updatedProduct = await Product.findByIdAndUpdate(
+        id,
+        updatedFields,
+        { new: true } // Retorna o documento atualizado
+      );
+  
+      res.json(updatedProduct);
+    } catch (error) {
+      console.error("Error in updateProduct controller:", error.message);
+      res.status(500).json({
+        message: "Server error",
+        error: error.message,
+      });
+    }
+  };

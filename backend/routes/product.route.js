@@ -22,7 +22,7 @@ router.get("/category/products", getAllProducts);
 router.get("/category/:category", getProductsByCategory);
 router.get("/recommendations", getRecommendedProducts);
 router.post("/", protectRoute, adminRoute, createProduct);
-router.put("/", protectRoute, adminRoute, updateProduct);
+router.put("/:id", protectRoute, adminRoute, updateProduct);
 router.patch("/:id", protectRoute, adminRoute, toggleFeaturedProduct);
 router.delete("/:id", protectRoute, adminRoute, deleteProduct);
 

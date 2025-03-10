@@ -20,7 +20,7 @@ const NavBar = () => {
   };
 
   return (
-    <header className="fixed top-0 left-0 w-full bg-white bg-opacity-90 backdrop-blur-0 z-40 ">
+    <header className="fixed top-0 left-0 w-full bg-white bg-opacity-90 backdrop-blur-0 z-20 ">
       <div className="container mx-auto px-4 py-3">
         <div className="flex items-center justify-between">
           {/* Logo */}
@@ -119,7 +119,7 @@ const NavBar = () => {
             <Link to="/Midias" className="text-gray-800 hover:text-red-600 transition" onClick={toggleMobileMenu}>
               Midias
             </Link>
-            <Link to="/featured" className="text-gray-800 hover:text-red-600 transition" onClick={toggleMobileMenu}>
+            <Link to="/CorpDrops" className="text-gray-800 hover:text-red-600 transition" onClick={toggleMobileMenu}>
               Creative Corporation
             </Link>
           </nav>

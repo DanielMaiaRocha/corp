@@ -55,7 +55,7 @@ const ProductPage = () => {
     }
 
     return (
-        <div className="max-w-6xl mx-auto p-6">
+        <div className="max-w-6xl mx-auto p-6 mb-20">
             <div className="flex flex-col md:flex-row gap-8">
                 {/* Coluna de imagens */}
                 <div className="flex flex-col md:flex-row gap-4">

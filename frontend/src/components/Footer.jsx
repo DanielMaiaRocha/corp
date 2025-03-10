@@ -24,16 +24,16 @@ const Footer = () => {
 
       {/* Links do Footer */}
       <div className="flex gap-4 text-gray-500 font-semibold">
-        <a href="#rastreo" className="hover:underline">
+        <a href="https://rastreamento.correios.com.br/app/index.php" className="hover:underline">
           rastreio
         </a>
-        <a href="#cadastro-drop" className="hover:underline">
+        <a href="/FAQ" className="hover:underline">
           FAQ
         </a>
-        <a href="#cadastro-drop" className="hover:underline">
+        <a href="https://wa.me" className="hover:underline">
           ajuda
         </a>
-        <a href="#trocas-devolucoes" className="hover:underline">
+        <a href="https://wa.me" className="hover:underline">
           trocas e devoluções
         </a>
       </div>

@@ -2,11 +2,12 @@ import { BarChart, PlusCircle, ShoppingBasket, Image } from "lucide-react";
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 
-import AnalyticsTab from "../components/AnalyticsTab";
+import AnalyticsTab from "../components/UsersTab";
 import CreateProductForm from "../components/CreateProductForm";
 import CarouselForm from "../components/CarouselForm"; 	
 import ProductsList from "../components/ProductsList";
 import { useProductStore } from "../../stores/useProductStore";
+import UsersList from "../components/UsersTab";
 
 const tabs = [
 	{ id: "create", label: "Novo Produto", icon: PlusCircle },
@@ -63,7 +64,7 @@ const AdminPage = () => {
 				{activeTab === "create" && <CreateProductForm />}
 				{activeTab === "products" && <ProductsList onEditProduct={handleEditProduct} />}
 				{activeTab === "carousel" && <CarouselForm />} 
-				{activeTab === "analytics" && <AnalyticsTab activeTab={activeTab} />}
+				{activeTab === "analytics" && <UsersList activeTab={activeTab} />}
 			</div>
 		</div>
 	);

@@ -19,6 +19,7 @@ import SobreCorp from "./pages/SobreCorp";
 import Midias from "./pages/Midias";
 import MyProfile from "./pages/MyProfile";
 import CorpForm from "./pages/CorpDrops";
+import FAQ from "./components/FAQ";
 
 function App() {
   const { user, checkAuth, checkingAuth } = useUserStore();
@@ -75,6 +76,7 @@ function App() {
           <Route path="/product/:id" element={<ProductPage />} />
           <Route path="/myProfile" element={<MyProfile />} />
           <Route path="/CorpDrops" element={<CorpForm />} />
+          <Route path="/FAQ" element={<FAQ />} />
           <Route
             path="/cart"
             element={user ? <CartPage /> : <Navigate to="/login" />}

@@ -25,14 +25,14 @@ const setCookies = (res, acessToken, refreshToken) => {
   res.cookie("acessToken", acessToken, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    sameSite: "none",
+    sameSite: "strict",
     maxAge: 15 * 60 * 1000, // 15 min
   });
 
   res.cookie("refreshToken", refreshToken, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    sameSite: "none",
+    sameSite: "strict",
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 dias
   });
 
@@ -161,7 +161,7 @@ export const refreshToken = async (req, res) => {
     res.cookie("acessToken", acessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "none",
+      sameSite: "strict",
       maxAge: 15 * 60 * 1000, // 15 min
     });
 
@@ -225,35 +225,44 @@ export const updateProfile = async (req, res) => {
 
 export const CorpFormRegister = async (req, res) => {
   try {
-    const userId = req.user._id;
+    const userId = req.user._id; // ID do usuário autenticado
     const { name, age, phone, sex, size, corpRec } = req.body;
 
+    // Verifica se o usuário existe
     const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // Verifica se já existe um formulário associado ao usuário
-    const existingForm = await CorpForm.findOne({ user: userId });
-    if (existingForm) {
+    // Verifica se o formulário já foi preenchido
+    if (user.age || user.sex || user.size || user.corpRec) {
       return res.status(400).json({ message: "User already has a form registered" });
     }
 
-    // Criar novo formulário
-    const newForm = new CorpForm({
-      user: userId,
-      name,
-      age,
-      phone,
-      sex,
-      size,
-      corpRec
-    });
+    // Atualiza os campos do usuário
+    user.name = name || user.name;
+    user.age = age;
+    user.phone = phone || user.phone;
+    user.sex = sex;
+    user.size = size; // size já é um array, conforme definido no modelo
+    user.corpRec = corpRec;
 
-    await newForm.save();
+    // Salva as alterações no banco de dados
+    await user.save();
 
-    res.status(201).json({ message: "Form registered successfully", form: newForm });
+    res.status(201).json({ message: "Form registered successfully", user });
   } catch (error) {
+    console.error("Erro no cadastro:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+export const getAllUsers = async (req, res) => {
+  try {
+    const users = await User.find({}, { password: 0 }); // Exclui a senha da resposta
+    res.status(200).json(users);
+  } catch (error) {
+    console.error("Error in getAllUsers controller:", error.message);
     res.status(500).json({ message: "Server error", error: error.message });
   }
 };
