@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { PlusCircle, Upload, Loader } from "lucide-react";
 import { useProductStore } from "../../stores/useProductStore";
 import imageCompression from "browser-image-compression";
-import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd"; // Importe a biblioteca de drag-and-drop
+import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 
 const categories = ["Blusas", "Regatas", "Calças", "Bones", "Jaquetas", "Casacos"];
 const sizes = ["PP", "P", "M", "G", "GG"];
@@ -14,75 +14,51 @@ const CreateProductForm = () => {
         description: "",
         price: "",
         category: "",
-        mainImage: "", // Imagem principal
-        images: [], // Array para imagens adicionais
+        mainImage: "",
+        images: [],
         size: [],
-        quantity: 0, 
+        quantity: 0,
     });
 
-    const [fileInfo, setFileInfo] = useState([]); // Armazena informações dos arquivos
-    const [error, setError] = useState("");
-
+    const [fileInfo, setFileInfo] = useState([]);
     const { createProduct, loading } = useProductStore();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        
-        if (newProduct.size.length === 0) {
-            setError("Selecione pelo menos um tamanho.");
-            return;
-        }
-
-        if (!newProduct.mainImage || newProduct.images.length === 0) {
-            setError("Selecione pelo menos uma imagem principal e uma imagem adicional.");
-            return;
-        }
-
-        try {
-            await createProduct(newProduct);
-            setNewProduct({ name: "", description: "", price: "", category: "", mainImage: "", images: [], size: [], quantity: "", });
-            setFileInfo([]);
-            setError("");
-        } catch {
-            console.log("error creating a product");
-            setError("Erro ao criar o produto. Tente novamente.");
-        }
+        await createProduct(newProduct);
+        setNewProduct({ name: "", description: "", price: "", category: "", mainImage: "", images: [], size: [], quantity: 0 });
+        setFileInfo([]);
     };
 
     const handleImageChange = async (e) => {
-        const files = e.target.files; // Pega todos os arquivos selecionados
+        const files = e.target.files;
         if (files.length > 0) {
             const maxSize = 5 * 1024 * 1024; // 5MB
             const validFiles = [];
             const invalidFiles = [];
 
-            // Verifica e comprime cada arquivo
             for (let i = 0; i < files.length; i++) {
                 if (files[i].size > maxSize) {
                     invalidFiles.push(files[i].name);
                 } else {
                     try {
-                        // Comprime a imagem
                         const compressedFile = await imageCompression(files[i], {
-                            maxSizeMB: 1, // Tamanho máximo da imagem após compressão (1MB)
-                            maxWidthOrHeight: 1024, // Dimensão máxima da imagem
-                            useWebWorker: true, // Usa um Web Worker para melhorar o desempenho
+                            maxSizeMB: 1,
+                            maxWidthOrHeight: 1024,
+                            useWebWorker: true,
                         });
                         validFiles.push(compressedFile);
                     } catch (error) {
                         console.error("Erro ao comprimir a imagem:", error);
-                        setError("Erro ao processar as imagens. Tente novamente.");
                         return;
                     }
                 }
             }
 
             if (invalidFiles.length > 0) {
-                setError(`Algumas imagens excedem o tamanho máximo de 5MB: ${invalidFiles.join(", ")}`);
                 return;
             }
 
-            // Converte os arquivos válidos para base64
             const readers = validFiles.map((file) => {
                 const reader = new FileReader();
                 return new Promise((resolve) => {
@@ -90,26 +66,24 @@ const CreateProductForm = () => {
                         resolve({
                             name: file.name,
                             size: (file.size / 1024).toFixed(2) + " KB",
-                            base64: reader.result, // Imagem em base64
+                            base64: reader.result,
                         });
                     };
                     reader.readAsDataURL(file);
                 });
             });
 
-            // Adiciona as imagens ao estado
             Promise.all(readers).then((results) => {
-                const allImages = results.map((result) => result.base64); // Todas as imagens
-                const mainImage = allImages[0]; // Primeira imagem é a principal
-                const additionalImages = allImages.slice(1); // Demais imagens
+                const allImages = results.map((result) => result.base64);
+                const mainImage = allImages[0];
+                const additionalImages = allImages.slice(1);
 
                 setNewProduct((prevState) => ({
                     ...prevState,
-                    mainImage, // Define a imagem principal
-                    images: additionalImages, // Define as imagens adicionais
+                    mainImage,
+                    images: additionalImages,
                 }));
                 setFileInfo((prevState) => [...prevState, ...results]);
-                setError("");
             });
         }
     };
@@ -132,18 +106,15 @@ const CreateProductForm = () => {
         setFileInfo((prevState) => prevState.filter((_, i) => i !== index));
     };
 
-    // Função para reordenar as imagens
     const handleDragEnd = (result) => {
-        if (!result.destination) return; // Se o item não foi solto em um destino válido
+        if (!result.destination) return;
 
         const items = Array.from(fileInfo);
-        const [reorderedItem] = items.splice(result.source.index, 1); // Remove o item da posição original
-        items.splice(result.destination.index, 0, reorderedItem); // Insere o item na nova posição
+        const [reorderedItem] = items.splice(result.source.index, 1);
+        items.splice(result.destination.index, 0, reorderedItem);
 
-        // Atualiza o estado das imagens
         setFileInfo(items);
 
-        // Define a primeira imagem como a imagem principal
         const mainImage = items[0].base64;
         const additionalImages = items.slice(1).map((item) => item.base64);
 
@@ -156,79 +127,75 @@ const CreateProductForm = () => {
 
     return (
         <motion.div
-            className='bg-gray-100 shadow-lg rounded-lg p-8 mb-8 max-w-xl mx-auto'
+            className="bg-white shadow-xl rounded-lg p-6 max-w-2xl mx-auto mb-20"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
         >
-            <h2 className='text-2xl font-semibold mb-6 text-[#e40612]'>Crie um novo produto</h2>
+            <h2 className="text-2xl font-bold mb-6 text-[#e40612]">Crie um novo produto</h2>
 
-            {error && <p className="text-red-600 text-sm mb-4">{error}</p>}
+            <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+                            Nome do Produto
+                        </label>
+                        <input
+                            type="text"
+                            id="name"
+                            name="name"
+                            value={newProduct.name}
+                            onChange={(e) => setNewProduct({ ...newProduct, name: e.target.value })}
+                            className="mt-1 block w-full bg-white border border-gray-300 rounded-md shadow-sm py-2 px-3 text-black focus:outline-none focus:ring-2 focus:ring-[#e40612] focus:border-[#e40612]"
+                            required
+                        />
+                    </div>
 
-            <form onSubmit={handleSubmit} className='space-y-4'>
-                {/* Input para o nome do produto */}
-                <div>
-                    <label htmlFor='name' className='block text-sm font-medium text-gray-700'>
-                        Nome do Produto
-                    </label>
-                    <input
-                        type='text'
-                        id='name'
-                        name='name'
-                        value={newProduct.name}
-                        onChange={(e) => setNewProduct({ ...newProduct, name: e.target.value })}
-                        className='mt-1 block w-full bg-white border border-gray-100 rounded-md shadow-sm py-2 px-3 text-black focus:outline-none focus:ring-1 focus:ring-[#e40612] focus:border-[#e40612]'
-                        required
-                    />
+                    <div>
+                        <label htmlFor="price" className="block text-sm font-medium text-gray-700">
+                            Preço
+                        </label>
+                        <input
+                            type="number"
+                            id="price"
+                            name="price"
+                            value={newProduct.price}
+                            onChange={(e) => setNewProduct({ ...newProduct, price: e.target.value })}
+                            step="0.01"
+                            className="mt-1 block w-full bg-white border border-gray-300 rounded-md shadow-sm py-2 px-3 text-black focus:outline-none focus:ring-2 focus:ring-[#e40612] focus:border-[#e40612]"
+                            required
+                        />
+                    </div>
                 </div>
 
-                {/* Input para a descrição do produto */}
                 <div>
-                    <label htmlFor='description' className='block text-sm font-medium text-gray-700'>
+                    <label htmlFor="description" className="block text-sm font-medium text-gray-700">
                         Descrição
                     </label>
                     <textarea
-                        id='description'
-                        name='description'
+                        id="description"
+                        name="description"
                         value={newProduct.description}
                         onChange={(e) => setNewProduct({ ...newProduct, description: e.target.value })}
-                        rows='3'
-                        className='mt-1 block w-full bg-white border border-gray-100 rounded-md shadow-sm py-2 px-3 text-black focus:outline-none focus:ring-1 focus:ring-[#e40612] focus:border-[#e40612] resize-none'
+                        rows="3"
+                        className="mt-1 block w-full bg-white border border-gray-300 rounded-md shadow-sm py-2 px-3 text-black focus:outline-none focus:ring-2 focus:ring-[#e40612] focus:border-[#e40612] resize-none"
                         required
                     />
                 </div>
 
-                {/* Input para o preço do produto */}
                 <div>
-                    <label htmlFor='price' className='block text-sm font-medium text-gray-700'>
-                        Preço
-                    </label>
-                    <input
-                        type='number'
-                        id='price'
-                        name='price'
-                        value={newProduct.price}
-                        onChange={(e) => setNewProduct({ ...newProduct, price: e.target.value })}
-                        step='0.01'
-                        className='mt-1 block w-full bg-white border border-gray-100 rounded-md shadow-sm py-2 px-3 text-black focus:outline-none focus:ring-1 focus:ring-[#e40612] focus:border-[#e40612]'
-                        required
-                    />
-                </div>
-
-                {/* Select para a categoria do produto */}
-                <div>
-                    <label htmlFor='category' className='block text-sm font-medium text-gray-700'>
+                    <label htmlFor="category" className="block text-sm font-medium text-gray-700">
                         Categoria
                     </label>
                     <select
-                        id='category'
-                        name='category'
+                        id="category"
+                        name="category"
                         value={newProduct.category}
                         onChange={(e) => setNewProduct({ ...newProduct, category: e.target.value })}
-                        className='mt-1 block w-full bg-white border border-gray-100 rounded-md shadow-sm py-2 px-3 text-black focus:outline-none focus:ring-1 focus:ring-[#e40612] focus:border-[#e40612]'
+                        className="mt-1 block w-full bg-white border border-gray-300 rounded-md shadow-sm py-2 px-3 text-black focus:outline-none focus:ring-2 focus:ring-[#e40612] focus:border-[#e40612]"
                         required
                     >
-                        <option value=''>Selecione uma categoria</option>
+                        <option value="">Selecione uma categoria</option>
                         {categories.map((category) => (
                             <option key={category} value={category}>
                                 {category}
@@ -236,25 +203,25 @@ const CreateProductForm = () => {
                         ))}
                     </select>
                 </div>
+
                 <div>
-                    <label htmlFor='quantity' className='block text-sm font-medium text-gray-700'>
+                    <label htmlFor="quantity" className="block text-sm font-medium text-gray-700">
                         Quantidade em estoque
                     </label>
                     <input
-                        type='number'
-                        id='quantity'
-                        name='quantity'
+                        type="number"
+                        id="quantity"
+                        name="quantity"
                         value={newProduct.quantity}
                         onChange={(e) => setNewProduct({ ...newProduct, quantity: e.target.value })}
                         min="1"
-                        className='mt-1 block w-full bg-white border border-gray-100 rounded-md shadow-sm py-2 px-3 text-black focus:outline-none focus:ring-1 focus:ring-[#e40612] focus:border-[#e40612]'
+                        className="mt-1 block w-full bg-white border border-gray-300 rounded-md shadow-sm py-2 px-3 text-black focus:outline-none focus:ring-2 focus:ring-[#e40612] focus:border-[#e40612]"
                         required
                     />
                 </div>
 
-                {/* Input para os tamanhos disponíveis */}
                 <div>
-                    <label className='block text-sm font-medium text-gray-700'>
+                    <label className="block text-sm font-medium text-gray-700">
                         Tamanhos disponíveis
                     </label>
                     <div className="flex space-x-2 mt-1">
@@ -272,24 +239,23 @@ const CreateProductForm = () => {
                     </div>
                 </div>
 
-                {/* Input para upload de múltiplas imagens */}
-                <div className='mt-1'>
-                    <label className='block text-sm font-medium text-gray-700 mb-2'>
+                <div className="mt-1">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
                         Imagens do Produto
                     </label>
                     <input
-                        type='file'
-                        id='images'
-                        className='sr-only'
-                        accept='image/*'
+                        type="file"
+                        id="images"
+                        className="sr-only"
+                        accept="image/*"
                         onChange={handleImageChange}
-                        multiple // Permite seleção de múltiplos arquivos
+                        multiple
                     />
                     <label
-                        htmlFor='images'
-                        className='cursor-pointer bg-[#e40612] py-2 px-3 rounded-md shadow-sm text-base leading-4 font-semibold text-white hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500'
+                        htmlFor="images"
+                        className="cursor-pointer bg-[#e40612] py-2 px-3 rounded-md shadow-sm text-base leading-4 font-semibold text-white hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500"
                     >
-                        <Upload className='h-5 w-5 inline-block mr-2' />
+                        <Upload className="h-5 w-5 inline-block mr-2" />
                         Upload de Imagens
                     </label>
                     {fileInfo.length > 0 && (
@@ -340,20 +306,19 @@ const CreateProductForm = () => {
                     )}
                 </div>
 
-                {/* Botão de submit */}
                 <button
-                    type='submit'
-                    className='w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-semibold text-gray-600 bg-gray-300 hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#e40612] disabled:opacity-50'
+                    type="submit"
+                    className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-semibold text-gray-600 bg-gray-300 hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#e40612] disabled:opacity-50"
                     disabled={loading}
                 >
                     {loading ? (
                         <>
-                            <Loader className='mr-2 h-5 w-5 animate-spin' aria-hidden='true' />
+                            <Loader className="mr-2 h-5 w-5 animate-spin" aria-hidden="true" />
                             Carregando...
                         </>
                     ) : (
                         <>
-                            <PlusCircle className='mr-2 h-5 w-5' />
+                            <PlusCircle className="mr-2 h-5 w-5" />
                             Criar Produto
                         </>
                     )}
