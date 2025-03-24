@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const instance = axios.create({
-  baseURL: "https://corp2.onrender.com/api",
+  baseURL: "https://corp.railway.internal/api",
   withCredentials: true, 
 });
 

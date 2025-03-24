@@ -7,7 +7,7 @@ export default defineConfig({
   server: {
 		proxy: {
 			"/api": {
-				target: "https://corp2.onrender.com/api/",
+				target: "https://corp.railway.internal/api/",
 			},
 		},
 	},
