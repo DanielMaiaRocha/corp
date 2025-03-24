@@ -21,7 +21,7 @@ const PORT = process.env.PORT || 5500;
 
 
 app.use(cors({
-    origin: process.env.FRONTEND_URL || "https://corprj.com",
+    origin: process.env.FRONTEND_URL || "https://corp-front-production.up.railway.app",
     credentials: true
 }));
 
