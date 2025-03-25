@@ -7,7 +7,7 @@ export default defineConfig({
   server: {
 		proxy: {
 			"/api": {
-				target: "https://corp.railway.internal/api/",
+				target: "https://corp-back-production.up.railway.app/api/",
 			},
 		},
 	},
